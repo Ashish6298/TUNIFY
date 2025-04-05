@@ -43,7 +43,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading song: $e')),
+        SnackBar(
+          content: Text('TRANSMISSION ERROR: $e'),
+          backgroundColor: Colors.red[900],
+        ),
       );
     }
   }
@@ -51,105 +54,240 @@ class _PlayerScreenState extends State<PlayerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Text(widget.song['title'] ?? 'Unknown Title'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Album art
-            Container(
-              width: 250,
-              height: 250,
-              margin: EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                image: DecorationImage(
-                  image: NetworkImage(widget.song['thumbnail'] ?? ''),
-                  fit: BoxFit.cover,
-                  onError: (error, stackTrace) => Icon(Icons.music_note),
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            // Song title and artist
-            Text(
-              widget.song['title'] ?? 'Unknown Title',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 10),
-            Text(
-              widget.song['author'] ?? 'Unknown Artist',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
-            ),
-            SizedBox(height: 30),
-            // Progress slider
-            Slider(
-              value: position.inSeconds.toDouble(),
-              max: duration.inSeconds.toDouble(),
-              onChanged: (value) async {
-                await _audioPlayer.seek(Duration(seconds: value.toInt()));
-              },
-            ),
-            // Position and duration
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(_formatDuration(position)),
-                  Text(_formatDuration(duration)),
-                ],
-              ),
-            ),
-            SizedBox(height: 30),
-            // Playback controls
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.replay_10),
-                  iconSize: 36,
-                  onPressed: () => _audioPlayer.seek(
-                    position - Duration(seconds: 10),
-                  ),
-                ),
-                SizedBox(width: 20),
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.blue,
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      isPlaying ? Icons.pause : Icons.play_arrow,
-                      color: Colors.white,
-                    ),
-                    iconSize: 48,
-                    onPressed: () async {
-                      if (isPlaying) {
-                        await _audioPlayer.pause();
-                      } else {
-                        await _audioPlayer.play();
-                      }
-                      setState(() => isPlaying = !isPlaying);
-                    },
-                  ),
-                ),
-                SizedBox(width: 20),
-                IconButton(
-                  icon: Icon(Icons.forward_10),
-                  iconSize: 36,
-                  onPressed: () => _audioPlayer.seek(
-                    position + Duration(seconds: 10),
-                  ),
-                ),
-              ],
-            ),
-          ],
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          'TUNIFY',
+          style: TextStyle(
+            fontSize: 20,
+            letterSpacing: 2,
+            color: Colors.white,
+            shadows: [
+              Shadow(color: Colors.tealAccent.withOpacity(0.5), blurRadius: 10),
+            ],
+          ),
         ),
+        centerTitle: true,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.grey[900]!,
+              Colors.blueGrey[800]!,
+              Colors.teal[700]!,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Album art
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        height: MediaQuery.of(context).size.width * 0.7,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.tealAccent.withOpacity(0.5),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.tealAccent.withOpacity(0.3),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: widget.song['thumbnail'] != null
+                            ? Image.network(
+                                widget.song['thumbnail'],
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey[800]!.withOpacity(0.5),
+                                    child: Center(
+                                      child: Text(
+                                        'VISUAL DATA LOST',
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          letterSpacing: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              )
+                            : Container(
+                                color: Colors.grey[800]!.withOpacity(0.5),
+                                child: Center(
+                                  child: Text(
+                                    'NO VISUAL DATA',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      letterSpacing: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ),
+                    SizedBox(height: 30),
+                    // Song title
+                    Text(
+                      widget.song['title']?.toUpperCase() ?? 'UNKNOWN TRANSMISSION',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 2,
+                        shadows: [
+                          Shadow(
+                            color: Colors.tealAccent.withOpacity(0.5),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 10),
+                    // Artist
+                    Text(
+                      widget.song['author']?.toUpperCase() ?? 'UNIDENTIFIED SOURCE',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[300],
+                        letterSpacing: 2,
+                        fontFamily: 'Courier',
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 40),
+                    // Progress slider
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        children: [
+                          SliderTheme(
+                            data: SliderThemeData(
+                              trackHeight: 2,
+                              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8),
+                              activeTrackColor: Colors.tealAccent,
+                              inactiveTrackColor: Colors.grey[600]!.withOpacity(0.3),
+                              thumbColor: Colors.white,
+                              overlayColor: Colors.tealAccent.withOpacity(0.2),
+                            ),
+                            child: Slider(
+                              value: position.inSeconds.toDouble(),
+                              max: duration.inSeconds.toDouble() > 0
+                                  ? duration.inSeconds.toDouble()
+                                  : 1.0,
+                              onChanged: (value) async {
+                                await _audioPlayer.seek(Duration(seconds: value.toInt()));
+                              },
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatDuration(position),
+                                style: TextStyle(
+                                  color: Colors.grey[300],
+                                  fontFamily: 'Courier',
+                                  fontSize: 12,
+                                ),
+                              ),
+                              Text(
+                                _formatDuration(duration),
+                                style: TextStyle(
+                                  color: Colors.grey[300],
+                                  fontFamily: 'Courier',
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 40),
+                    // Playback controls
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildControlButton(
+                          icon: Icons.replay_10,
+                          onPressed: () =>
+                              _audioPlayer.seek(position - Duration(seconds: 10)),
+                        ),
+                        SizedBox(width: 30),
+                        _buildControlButton(
+                          icon: isPlaying ? Icons.pause : Icons.play_arrow,
+                          size: 50,
+                          onPressed: () async {
+                            if (isPlaying) {
+                              await _audioPlayer.pause();
+                            } else {
+                              await _audioPlayer.play();
+                            }
+                            setState(() => isPlaying = !isPlaying);
+                          },
+                          isMainButton: true,
+                        ),
+                        SizedBox(width: 30),
+                        _buildControlButton(
+                          icon: Icons.forward_10,
+                          onPressed: () =>
+                              _audioPlayer.seek(position + Duration(seconds: 10)),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildControlButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+    double size = 36,
+    bool isMainButton = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isMainButton
+            ? Colors.black // Solid teal for main button
+            : Colors.black, // Solid grey for secondary buttons
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: Colors.white),
+        iconSize: size,
+        onPressed: onPressed,
+        padding: EdgeInsets.all(isMainButton ? 16 : 12),
       ),
     );
   }
