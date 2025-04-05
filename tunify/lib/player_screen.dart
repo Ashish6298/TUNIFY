@@ -33,7 +33,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Future<void> _initPlayer() async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:3000/stream/${widget.song['id']}'),
+        Uri.parse('https://tunify-ztgw.onrender.com/stream/${widget.song['id']}'),
       );
       if (response.statusCode == 200) {
         final streamData = jsonDecode(response.body);

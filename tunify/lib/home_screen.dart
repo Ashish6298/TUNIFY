@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen>
     });
     try {
       final response = await retry(
-        () => http.get(Uri.parse('http://10.0.2.2:3000/collections')).timeout(Duration(seconds: 30)),
+        () => http.get(Uri.parse('https://tunify-ztgw.onrender.com/collections')).timeout(Duration(seconds: 30)),
         maxAttempts: 3,
         delayFactor: Duration(seconds: 2),
       );
@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:3000/search?q=$query'),
+        Uri.parse('https://tunify-ztgw.onrender.com/search?q=$query'),
       ).timeout(Duration(seconds: 10));
 
       if (response.statusCode == 200) {
