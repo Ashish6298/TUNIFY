@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const ytdl = require("@distube/ytdl-core");
 const youtubeSearch = require("youtube-search-api");
-
+require("dotenv").config(); // Add this at the top of server.js
 const app = express();
 const port = 3000;
 
@@ -108,9 +108,6 @@ app.get("/recommendations", async (req, res) => {
 });
 
 // Stream endpoint
-require("dotenv").config(); // Add this at the top of server.js
-const ytdl = require("@distube/ytdl-core");
-
 app.get("/stream/:videoId", async (req, res) => {
   const videoId = req.params.videoId;
 
