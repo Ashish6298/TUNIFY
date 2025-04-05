@@ -12,6 +12,7 @@
   "dependencies": {
     "@distube/ytdl-core": "^4.16.6",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "nodemon": "^3.1.9",
     "youtube-search-api": "^1.2.2",

@@ -108,6 +108,9 @@ app.get("/recommendations", async (req, res) => {
 });
 
 // Stream endpoint
+require("dotenv").config(); // Add this at the top of server.js
+const ytdl = require("@distube/ytdl-core");
+
 app.get("/stream/:videoId", async (req, res) => {
   const videoId = req.params.videoId;
 
@@ -129,29 +132,8 @@ app.get("/stream/:videoId", async (req, res) => {
       });
     }
 
-    const cookies = [
-      { name: "LOGIN_INFO", value: "AFmmF2swRQIhANTYGZboN2NzPvlzhQvpyNcmtCCTBASHJqABrPYxjKoDAiAGtCVMH59nWepY4G_W27Aeowfv6k839rcwuqMdgLKT-A:QUQ3MjNmekpGU3NTbUMxSFdWSVpKQ2dDNGpzZmRKU3JGWGo1a21qY0FvZkZXVVR0UVBTUHQwdTlPcDFZOXFtbWNlZHgtc0tFMDJNVGZIWVRtQmN0SUpQR3ZQZUhtMGJneHM3WmQ1NV8yUmo2eFFEeTVFVTVIb1A2cFZrZ2xlNk4ySjB2a0ZKNDJLc21wOUJ2WUZ0cnVpN3lsUkF6NGhfUGhn" },
-      { name: "PREF", value: "tz=Asia.Calcutta&f4=4000000&f6=40000000&f5=20000&f7=100" },
-      { name: "SID", value: "g.a000vQiP8ClOXSHM_7ueWaK9ujL2iMXZJ2dIb0jeq4-Hx_xhy0OWVoNFUI0zGWq-inkTnEiKnAACgYKAbUSARUSFQHGX2MieFgVkz-yje-dtK3woQWTrRoVAUF8yKrq1l2zlk2YekcNt8NsjLo70076" },
-      { name: "__Secure-1PSIDTS", value: "sidts-CjIB7pHptVzwjHRdv_FJFSN0H32fPjC0Pjny9zCQFBrLqhlDW2r6S21u5sbmfAjb-2d11BAA" },
-      { name: "__Secure-3PSIDTS", value: "sidts-CjIB7pHptVzwjHRdv_FJFSN0H32fPjC0Pjny9zCQFBrLqhlDW2r6S21u5sbmfAjb-2d11BAA" },
-      { name: "__Secure-1PSID", value: "g.a000vQiP8ClOXSHM_7ueWaK9ujL2iMXZJ2dIb0jeq4-Hx_xhy0OWn2hDRvjxP_59pTfMDIZaIgACgYKAegSARUSFQHGX2Micc9jgtha8_fPN-USDFwYTxoVAUF8yKpTlS4Sllk6_q9ABBX_D2q00076" },
-      { name: "__Secure-3PSID", value: "g.a000vQiP8ClOXSHM_7ueWaK9ujL2iMXZJ2dIb0jeq4-Hx_xhy0OWQR91IR-F7trUS4Whfz5gcQACgYKAaUSARUSFQHGX2MiFo1Twiwxg6bzB-WEhhxZqxoVAUF8yKpwD_ChqvMrJciuXmWVIsfZ0076" },
-      { name: "HSID", value: "At_jAq2i-98BrH_xm" },
-      { name: "SSID", value: "A143R5E3_OCNzND4b" },
-      { name: "APISID", value: "cGcQqX_xlrU8q2el/Al3Dqv55KTpWkDoTl" },
-      { name: "SAPISID", value: "gAYKM6fbPOAAGgYj/AXsmsaFmmidelcqjM" },
-      { name: "__Secure-1PAPISID", value: "gAYKM6fbPOAAGgYj/AXsmsaFmmidelcqjM" },
-      { name: "__Secure-3PAPISID", value: "gAYKM6fbPOAAGgYj/AXsmsaFmmidelcqjM" },
-      { name: "CONSISTENCY", value: "AKreu9s7JiLUZ2EvTUHAI3wVyi4nREiq7MZONnW9RtiLjpGodP3Z0bM7AMDcrMeTGKy-7saLyRML-4FySLalykeps7HtOa1vfoVk-9Y8ofTzMaeTdHUQXUPKtxWoiqemQAmnd1mmc6cmpobw7KP2M7N6" },
-      { name: "SIDCC", value: "AKEyXzUkEJ6QoeMXR39Ow_S7r4uq8h8WuTMFqZWcbB0u0fIrSDolEJ0udScTPN1Gx44i4zHL6o4" },
-      { name: "__Secure-1PSIDCC", value: "AKEyXzW-d31E2hdlO9e35cbX-ylENSLmRUWUN6ZYyIhrBIfZRM9qKS7Lser8mRHiOeKjFLJzmQ" },
-      { name: "__Secure-3PSIDCC", value: "AKEyXzVlvwYzHIfa0aIKvLMe03geSHXYIIIhgt22IvbPxiTh6B4CwabfnOFv16O3Bw9BwY_1VEI" },
-      { name: "YSC", value: "vrP5f01U2F8" },
-      { name: "VISITOR_INFO1_LIVE", value: "spnq2cTgeX0" },
-      { name: "VISITOR_PRIVACY_METADATA", value: "CgJJThIEGgAgLQ%3D%3D" },
-      { name: "__Secure-ROLLOUT_TOKEN", value: "CM2ggoq4ieOjpgEQyLDG0dS5iwMY55fyw8DBjAM%3D" },
-    ];
+    // Load cookies from .env and parse the JSON string
+    const cookies = JSON.parse(process.env.YOUTUBE_COOKIES);
 
     const info = await ytdl.getInfo(url, {
       requestOptions: {
@@ -160,7 +142,7 @@ app.get("/stream/:videoId", async (req, res) => {
           "Accept-Language": "en-US,en;q=0.9",
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         },
-        cookies: cookies, // Use the parsed cookies array
+        cookies: cookies, // Use cookies from .env
       },
     });
 
@@ -190,6 +172,8 @@ app.get("/stream/:videoId", async (req, res) => {
     });
   }
 });
+
+
 // Playlist endpoint (GET)
 app.get("/playlist", (req, res) => {
   res.json(Array.from(playlistSongs));
