@@ -1,10 +1,12 @@
 
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:just_audio/just_audio.dart';
 import 'package:retry/retry.dart';
 import 'player_screen.dart';
+import 'collection_screen.dart'; // Import the CollectionScreen
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -14,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   final AudioPlayer _audioPlayer = AudioPlayer();
-  List<dynamic> latestSongs = [];
+  List<dynamic> collections = [];
   List<dynamic> searchResults = [];
   late AnimationController _controller;
   late Animation<double> _pulseAnimation;
@@ -34,23 +36,23 @@ class _HomeScreenState extends State<HomeScreen>
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
     
-    fetchLatestSongs();
+    fetchCollections();
   }
 
-  Future<void> fetchLatestSongs() async {
+  Future<void> fetchCollections() async {
     setState(() {
       _isLoading = true;
     });
     try {
       final response = await retry(
-        () => http.get(Uri.parse('http://10.0.2.2:3000/recommendations')).timeout(Duration(seconds: 30)),
+        () => http.get(Uri.parse('http://10.0.2.2:3000/collections')).timeout(Duration(seconds: 30)),
         maxAttempts: 3,
         delayFactor: Duration(seconds: 2),
       );
 
       if (response.statusCode == 200) {
         setState(() {
-          latestSongs = jsonDecode(response.body);
+          collections = jsonDecode(response.body);
           _isLoading = false;
         });
       } else {
@@ -59,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen>
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to load recommendations: ${response.statusCode}'),
+            content: Text('Failed to load collections: ${response.statusCode}'),
             backgroundColor: Colors.red[900],
           ),
         );
@@ -70,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen>
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error loading recommendations: $e'),
+          content: Text('Error loading collections: $e'),
           backgroundColor: Colors.red[900],
         ),
       );
@@ -117,6 +119,15 @@ class _HomeScreenState extends State<HomeScreen>
       context,
       MaterialPageRoute(
         builder: (context) => PlayerScreen(song: song),
+      ),
+    );
+  }
+
+  void _navigateToCollection(String name, String keyword) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CollectionScreen(collectionName: name, keyword: keyword),
       ),
     );
   }
@@ -239,50 +250,9 @@ class _HomeScreenState extends State<HomeScreen>
                   ],
                 ),
               ),
-            if (!_isSearchActive)
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                child: Text(
-                  'LATEST RELEASES',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    letterSpacing: 2,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
             Expanded(
-              child: _isLoading
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ScaleTransition(
-                            scale: _pulseAnimation,
-                            child: Text(
-                              'LOADING LATEST HITS',
-                              style: TextStyle(
-                                fontSize: 24,
-                                color: Colors.white,
-                                letterSpacing: 4,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.tealAccent.withOpacity(0.3),
-                                    blurRadius: 10,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 20),
-                          CircularProgressIndicator(
-                            color: Colors.tealAccent,
-                          ),
-                        ],
-                      ),
-                    )
-                  : (_isSearchActive && searchResults.isEmpty && _searchController.text.isEmpty)
+              child: _isSearchActive
+                  ? (_searchController.text.isEmpty && searchResults.isEmpty)
                       ? Center(
                           child: Text(
                             'START TYPING TO SEARCH',
@@ -293,7 +263,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ),
                         )
-                      : (_isSearchActive && searchResults.isEmpty && _searchController.text.isNotEmpty)
+                      : (searchResults.isEmpty)
                           ? Center(
                               child: Text(
                                 'NO RESULTS FOUND',
@@ -305,9 +275,9 @@ class _HomeScreenState extends State<HomeScreen>
                               ),
                             )
                           : ListView.builder(
-                              itemCount: _isSearchActive ? searchResults.length : latestSongs.length,
+                              itemCount: searchResults.length,
                               itemBuilder: (context, index) {
-                                final song = _isSearchActive ? searchResults[index] : latestSongs[index];
+                                final song = searchResults[index];
                                 return Container(
                                   margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                   decoration: BoxDecoration(
@@ -326,20 +296,11 @@ class _HomeScreenState extends State<HomeScreen>
                                       ),
                                     ),
                                     subtitle: Text(
-                                      '${song['author'] ?? 'UNKNOWN ARTIST'} • ${song['duration'] ?? ''}',
+                                      song['author'] ?? 'UNKNOWN ARTIST',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(color: Colors.grey[300]),
                                     ),
-                                    trailing: _isSearchActive
-                                        ? null
-                                        : Text(
-                                            song['publishedAt'] ?? '',
-                                            style: TextStyle(
-                                              color: Colors.grey[400],
-                                              fontSize: 12,
-                                            ),
-                                          ),
                                     leading: song['thumbnail'] != null
                                         ? ClipRRect(
                                             borderRadius: BorderRadius.circular(8),
@@ -377,7 +338,186 @@ class _HomeScreenState extends State<HomeScreen>
                                   ),
                                 );
                               },
-                            ),
+                            )
+                  : _isLoading
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ScaleTransition(
+                                scale: _pulseAnimation,
+                                child: Text(
+                                  'LOADING COLLECTIONS',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    color: Colors.white,
+                                    letterSpacing: 4,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.tealAccent.withOpacity(0.3),
+                                        blurRadius: 10,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                              CircularProgressIndicator(
+                                color: Colors.tealAccent,
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: collections.length,
+                          itemBuilder: (context, index) {
+                            final collection = collections[index];
+                            final songs = collection['songs'] as List<dynamic>;
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    if (songs.isNotEmpty) {
+                                      if (songs.length > 1) {
+                                        // Navigate to CollectionScreen if more than 1 song
+                                        _navigateToCollection(collection['name'], collection['keyword']);
+                                      } else {
+                                        // Directly play the song if only 1 song
+                                        _navigateToPlayer(songs[0]);
+                                      }
+                                    }
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          collection['name'].toUpperCase(),
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            color: Colors.white,
+                                            letterSpacing: 2,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              collection['name'] == 'Top 100 Songs'
+                                                  ? '100 SONGS'
+                                                  : '${songs.length} SONGS',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey[400],
+                                              ),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Icon(
+                                              songs.length > 1
+                                                  ? Icons.arrow_forward_ios
+                                                  : Icons.play_arrow,
+                                              color: Colors.tealAccent,
+                                              size: 20,
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 200,
+                                  child: songs.isEmpty
+                                      ? Center(
+                                          child: Text(
+                                            'NO SONGS AVAILABLE',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey[400],
+                                              letterSpacing: 1,
+                                            ),
+                                          ),
+                                        )
+                                      : ListView.builder(
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount: songs.length,
+                                          itemBuilder: (context, songIndex) {
+                                            final song = songs[songIndex];
+                                            return Container(
+                                              width: 150,
+                                              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                              child: GestureDetector(
+                                                onTap: () => _navigateToPlayer(song),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    song['thumbnail'] != null
+                                                        ? ClipRRect(
+                                                            borderRadius: BorderRadius.circular(8),
+                                                            child: Image.network(
+                                                              song['thumbnail'],
+                                                              width: 150,
+                                                              height: 120,
+                                                              fit: BoxFit.cover,
+                                                              errorBuilder: (context, error, stackTrace) =>
+                                                                  Container(
+                                                                width: 150,
+                                                                height: 120,
+                                                                color: Colors.tealAccent.withOpacity(0.3),
+                                                                child: Center(
+                                                                  child: Icon(
+                                                                    Icons.music_off,
+                                                                    color: Colors.white,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          )
+                                                        : Container(
+                                                            width: 150,
+                                                            height: 120,
+                                                            color: Colors.tealAccent.withOpacity(0.3),
+                                                            child: Center(
+                                                              child: Icon(
+                                                                Icons.music_off,
+                                                                color: Colors.white,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                    SizedBox(height: 8),
+                                                    Text(
+                                                      song['title'] ?? 'UNKNOWN TRACK',
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      song['author'] ?? 'UNKNOWN ARTIST',
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                        color: Colors.grey[300],
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
             ),
           ],
         ),
@@ -406,7 +546,7 @@ class _HomeScreenState extends State<HomeScreen>
                 if (_isSearchActive) {
                   _toggleSearch();
                 } else {
-                  fetchLatestSongs();
+                  fetchCollections();
                 }
               },
             ),
