@@ -6,14 +6,18 @@ const youtubeSearch = require("youtube-search-api");
 const app = express();
 const port = 3000;
 
+// In-memory playlist storage
+const playlistSongs = new Set();
+
 // Middleware
 app.use(
   cors({
-    origin: "*", // Adjust this in production to specific origins
-    methods: ["GET"],
+    origin: "*",
+    methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
   })
 );
+app.use(express.json()); // Parse JSON bodies
 
 // Search endpoint
 app.get("/search", async (req, res) => {
@@ -66,7 +70,7 @@ app.get("/recommendations", async (req, res) => {
     const result = await youtubeSearch.GetListByKeyword(
       `new music releases ${currentYear}`,
       false,
-      20, // Changed from 20 (already >= 10, no change needed but keeping for clarity)
+      20,
       [{ type: "video" }]
     );
 
@@ -86,7 +90,6 @@ app.get("/recommendations", async (req, res) => {
       publishedAt: item.publishedTime || "Unknown Date",
     }));
 
-    // Sort by published date if available (newest first)
     recommendations.sort((a, b) => {
       if (!a.publishedAt || !b.publishedAt) return 0;
       return new Date(b.publishedAt) - new Date(a.publishedAt);
@@ -119,7 +122,6 @@ app.get("/stream/:videoId", async (req, res) => {
     console.log(`Fetching audio stream for video ID: ${videoId}`);
     const url = `https://www.youtube.com/watch?v=${videoId}`;
 
-    // Validate video ID
     if (!ytdl.validateID(videoId)) {
       return res.status(400).json({
         success: false,
@@ -127,19 +129,17 @@ app.get("/stream/:videoId", async (req, res) => {
       });
     }
 
-    // Get video info with audio-only filter
     const info = await ytdl.getInfo(url, {
       requestOptions: {
         headers: {
-          "User-Agent": "Mozilla/5.0", // Helps avoid some YouTube restrictions
+          "User-Agent": "Mozilla/5.0",
         },
       },
     });
 
-    // Choose audio-only format
     const audioFormat = ytdl.chooseFormat(info.formats, {
       filter: "audioonly",
-      quality: "highestaudio", // Prioritize highest audio quality
+      quality: "highestaudio",
     });
 
     if (!audioFormat) {
@@ -164,14 +164,46 @@ app.get("/stream/:videoId", async (req, res) => {
   }
 });
 
+// Playlist endpoint (GET)
+app.get("/playlist", (req, res) => {
+  res.json(Array.from(playlistSongs));
+});
+
+// Playlist endpoint (POST)
+app.post("/playlist/add", (req, res) => {
+  const song = req.body;
+  if (!song || !song.id) {
+    return res.status(400).json({
+      success: false,
+      error: "Song data with an ID is required",
+    });
+  }
+
+  // Add song to playlist (using Set to avoid duplicates based on object reference)
+  playlistSongs.add({
+    id: song.id,
+    title: song.title || "Unknown Title",
+    author: song.author || "Unknown Channel",
+    thumbnail: song.thumbnail || "",
+    duration: song.duration || "Unknown Duration",
+    publishedAt: song.publishedAt || "Unknown Date",
+  });
+
+  console.log(`Added song to playlist: ${song.title}`);
+  res.status(200).json({
+    success: true,
+    message: "Song added to playlist",
+  });
+});
+
 // Collections endpoint
 app.get("/collections", async (req, res) => {
   try {
     console.log("Fetching song collections");
     const currentYear = new Date().getFullYear();
 
-    // Define collections with their search keywords, including "Top 100 Songs" and new additions
     const collections = [
+      { name: "Playlist", keyword: null }, // Add Playlist as a collection
       { name: "Top 100 Songs", keyword: `top songs ${currentYear}` },
       { name: "Romantics", keyword: `romantic songs ${currentYear}` },
       { name: "Raps", keyword: `best rap songs ${currentYear}` },
@@ -188,15 +220,23 @@ app.get("/collections", async (req, res) => {
       { name: "Love Ballads", keyword: `love ballads ${currentYear}` },
       { name: "Hip Hop Classics", keyword: `hip hop classics` },
       { name: "Kannada", keyword: `kannada songs ${currentYear}` },
-      { name: "Punjabi", keyword: `punjabi songs ${currentYear}` }, // Note: Already exists as "Punjabi Beats", so adjusted keyword
+      { name: "Punjabi", keyword: `punjabi songs ${currentYear}` },
       { name: "Haryanvi", keyword: `haryanvi songs ${currentYear}` },
       { name: "Tamil", keyword: `tamil songs ${currentYear}` },
       { name: "Malayalam", keyword: `malayalam songs ${currentYear}` },
     ];
 
-    // Fetch songs for each collection
     const collectionResults = await Promise.all(
       collections.map(async (collection) => {
+        if (collection.name === "Playlist") {
+          const songs = Array.from(playlistSongs);
+          return {
+            name: collection.name,
+            songs: songs.length ? songs : [],
+            keyword: collection.keyword,
+          };
+        }
+
         const result = await youtubeSearch.GetListByKeyword(
           collection.keyword,
           false,
@@ -221,7 +261,6 @@ app.get("/collections", async (req, res) => {
           publishedAt: item.publishedTime || "Unknown Date",
         }));
 
-        // Sort songs by published date (newest first)
         songs.sort((a, b) => {
           if (!a.publishedAt || !b.publishedAt) return 0;
           return new Date(b.publishedAt) - new Date(a.publishedAt);
@@ -252,7 +291,7 @@ app.get("/top-songs", async (req, res) => {
     const result = await youtubeSearch.GetListByKeyword(
       keyword,
       false,
-      100, // Already 100 (>= 10), no change needed
+      100,
       [{ type: "video" }]
     );
 

@@ -5,6 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:retry/retry.dart';
 import 'player_screen.dart';
 import 'collection_screen.dart';
+import 'playlist_screen.dart'; // New import for PlaylistScreen
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -130,6 +131,15 @@ class _HomeScreenState extends State<HomeScreen>
           keyword: keyword,
           initialSongs: collections.firstWhere((c) => c['name'] == name)['songs'],
         ),
+      ),
+    );
+  }
+
+  void _navigateToPlaylist() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PlaylistScreen(),
       ),
     );
   }
@@ -615,6 +625,14 @@ class _HomeScreenState extends State<HomeScreen>
                 size: 32,
               ),
               onPressed: _toggleSearch,
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.playlist_play,
+                color: Colors.grey[400],
+                size: 32,
+              ),
+              onPressed: _navigateToPlaylist,
             ),
           ],
         ),

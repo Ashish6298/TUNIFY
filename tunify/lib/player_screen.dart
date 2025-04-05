@@ -51,6 +51,38 @@ class _PlayerScreenState extends State<PlayerScreen> {
     }
   }
 
+  Future<void> _addToPlaylist() async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://tunify-ztgw.onrender.com/playlist/add'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(widget.song),
+      );
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Song added to playlist'),
+            backgroundColor: Colors.teal[700],
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to add song: ${response.statusCode}'),
+            backgroundColor: Colors.red[900],
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error adding to playlist: $e'),
+          backgroundColor: Colors.red[900],
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,7 +124,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Album art
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
@@ -145,7 +176,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       ),
                     ),
                     SizedBox(height: 30),
-                    // Song title
                     Text(
                       widget.song['title']?.toUpperCase() ?? 'UNKNOWN TRANSMISSION',
                       style: TextStyle(
@@ -165,7 +195,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 10),
-                    // Artist
                     Text(
                       widget.song['author']?.toUpperCase() ?? 'UNIDENTIFIED SOURCE',
                       style: TextStyle(
@@ -178,8 +207,32 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 40),
-                    // Progress slider
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _addToPlaylist,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.tealAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.playlist_add, color: Colors.grey[900]),
+                          SizedBox(width: 8),
+                          Text(
+                            'Add to Playlist',
+                            style: TextStyle(
+                              color: Colors.grey[900],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 20),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       child: Column(
@@ -228,7 +281,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       ),
                     ),
                     SizedBox(height: 40),
-                    // Playback controls
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -279,9 +331,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isMainButton
-            ? Colors.black // Solid teal for main button
-            : Colors.black, // Solid grey for secondary buttons
+        color: isMainButton ? Colors.black : Colors.black,
       ),
       child: IconButton(
         icon: Icon(icon, color: Colors.white),
