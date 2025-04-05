@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -127,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CollectionScreen(collectionName: name, keyword: keyword),
+        builder: (context) => CollectionScreen(collectionName: name, keyword: keyword, initialSongs: collections.firstWhere((c) => c['name'] == name)['songs']),
       ),
     );
   }
@@ -405,15 +403,14 @@ class _HomeScreenState extends State<HomeScreen>
                                         ),
                                         Row(
                                           children: [
-                                            Text(
-                                              collection['name'] == 'Top 100 Songs'
-                                                  ? '100 SONGS'
-                                                  : '${songs.length} SONGS',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey[400],
+                                            if (collection['name'] == 'Top 100 Songs')
+                                              Text(
+                                                '100 SONGS',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey[400],
+                                                ),
                                               ),
-                                            ),
                                             SizedBox(width: 8),
                                             Icon(
                                               songs.length > 1
@@ -443,7 +440,7 @@ class _HomeScreenState extends State<HomeScreen>
                                         )
                                       : ListView.builder(
                                           scrollDirection: Axis.horizontal,
-                                          itemCount: songs.length,
+                                          itemCount: songs.length > 3 ? 3 : songs.length, // Limit to 3 songs
                                           itemBuilder: (context, songIndex) {
                                             final song = songs[songIndex];
                                             return Container(

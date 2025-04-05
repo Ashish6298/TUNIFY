@@ -1,3 +1,7 @@
+//server.js
+
+
+
 const express = require("express");
 const cors = require("cors");
 const ytdl = require("@distube/ytdl-core");
@@ -66,7 +70,7 @@ app.get("/recommendations", async (req, res) => {
     const result = await youtubeSearch.GetListByKeyword(
       `new music releases ${currentYear}`,
       false,
-      20,
+      20, // Changed from 20 (already >= 10, no change needed but keeping for clarity)
       [{ type: "video" }]
     );
 
@@ -164,7 +168,7 @@ app.get("/stream/:videoId", async (req, res) => {
   }
 });
 
-// Collections endpoint (Updated to include "Top 100 Songs")
+// Collections endpoint (Updated to fetch minimum 10)
 app.get("/collections", async (req, res) => {
   try {
     console.log("Fetching song collections");
@@ -172,7 +176,7 @@ app.get("/collections", async (req, res) => {
 
     // Define collections with their search keywords, including "Top 100 Songs"
     const collections = [
-      { name: "Top 100 Songs", keyword: `top songs ${currentYear}` }, // Added "Top 100 Songs"
+      { name: "Top 100 Songs", keyword: `top songs ${currentYear}` },
       { name: "Romantics", keyword: `romantic songs ${currentYear}` },
       { name: "Raps", keyword: `best rap songs ${currentYear}` },
       { name: "Best of Yo Yo", keyword: `yo yo honey singh best songs` },
@@ -195,7 +199,7 @@ app.get("/collections", async (req, res) => {
         const result = await youtubeSearch.GetListByKeyword(
           collection.keyword,
           false,
-          5, // Limit to 5 songs per collection for initial display
+          10, // Changed from 5 to 10
           [{ type: "video" }]
         );
 
@@ -238,7 +242,7 @@ app.get("/collections", async (req, res) => {
   }
 });
 
-// Top Songs endpoint (Unchanged)
+// Top Songs endpoint
 app.get("/top-songs", async (req, res) => {
   try {
     console.log("Fetching top 100 songs");
@@ -247,7 +251,7 @@ app.get("/top-songs", async (req, res) => {
     const result = await youtubeSearch.GetListByKeyword(
       keyword,
       false,
-      100, // Fetch 100 songs
+      100, // Already 100 (>= 10), no change needed
       [{ type: "video" }]
     );
 

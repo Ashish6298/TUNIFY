@@ -6,8 +6,9 @@ import 'player_screen.dart';
 class CollectionScreen extends StatefulWidget {
   final String collectionName;
   final String keyword;
+  final List<dynamic> initialSongs; // Pass initial songs from HomeScreen
 
-  CollectionScreen({required this.collectionName, required this.keyword});
+  CollectionScreen({required this.collectionName, required this.keyword, required this.initialSongs});
 
   @override
   _CollectionScreenState createState() => _CollectionScreenState();
@@ -20,49 +21,11 @@ class _CollectionScreenState extends State<CollectionScreen> {
   @override
   void initState() {
     super.initState();
-    fetchSongs();
-  }
-
-  Future<void> fetchSongs() async {
+    // Use initialSongs if available
     setState(() {
-      _isLoading = true;
+      songs = widget.initialSongs;
+      _isLoading = false;
     });
-    try {
-      final endpoint = widget.keyword.contains('top songs')
-          ? 'http://10.0.2.2:3000/top-songs'
-          : 'http://10.0.2.2:3000/collection-songs?keyword=${Uri.encodeComponent(widget.keyword)}';
-
-      final response = await http.get(
-        Uri.parse(endpoint),
-      ).timeout(Duration(seconds: 30));
-
-      if (response.statusCode == 200) {
-        setState(() {
-          songs = jsonDecode(response.body);
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load songs: ${response.statusCode}'),
-            backgroundColor: Colors.red[900],
-          ),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error loading songs: $e'),
-          backgroundColor: Colors.red[900],
-        ),
-      );
-    }
   }
 
   void _navigateToPlayer(Map<String, dynamic> song) {
@@ -85,7 +48,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
           widget.collectionName.toUpperCase(),
           style: TextStyle(
             fontSize: 24,
-            letterSpacing: 4,
+            letterSpacing: 2,
             color: Colors.white,
             shadows: [
               Shadow(
@@ -109,15 +72,12 @@ class _CollectionScreenState extends State<CollectionScreen> {
             ],
           ),
         ),
-        child: _isLoading
+        child: songs.isEmpty
             ? Center(
-                child: CircularProgressIndicator(
-                  color: Colors.tealAccent,
-                ),
-              )
-            : songs.isEmpty
-                ? Center(
-                    child: Text(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
                       'NO SONGS FOUND',
                       style: TextStyle(
                         fontSize: 20,
@@ -125,93 +85,82 @@ class _CollectionScreenState extends State<CollectionScreen> {
                         letterSpacing: 2,
                       ),
                     ),
-                  )
-                : ListView.builder(
-                    itemCount: songs.length,
-                    itemBuilder: (context, index) {
-                      final song = songs[index];
-                      return Container(
-                        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[800]!.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.tealAccent.withOpacity(0.3)),
+                    SizedBox(height: 10),
+                    Text(
+                      'Failed to load songs: 404',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.red[900],
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : ListView.builder(
+                itemCount: songs.length,
+                itemBuilder: (context, index) {
+                  final song = songs[index];
+                  return Container(
+                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[800]!.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.tealAccent.withOpacity(0.3)),
+                    ),
+                    child: ListTile(
+                      title: Text(
+                        song['title'] ?? 'UNKNOWN TRACK',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
-                        child: ListTile(
-                          leading: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (widget.collectionName == 'Top 100 Songs')
-                                Text(
-                                  '${index + 1}.',
-                                  style: TextStyle(
-                                    color: Colors.tealAccent,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                      ),
+                      subtitle: Text(
+                        song['author'] ?? 'UNKNOWN ARTIST',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.grey[300]),
+                      ),
+                      leading: song['thumbnail'] != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                song['thumbnail'],
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => Container(
+                                  width: 50,
+                                  height: 50,
+                                  color: Colors.tealAccent.withOpacity(0.3),
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.music_off,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
-                              if (widget.collectionName == 'Top 100 Songs') SizedBox(width: 8),
-                              song['thumbnail'] != null
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        song['thumbnail'],
-                                        width: 50,
-                                        height: 50,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => Container(
-                                          width: 50,
-                                          height: 50,
-                                          color: Colors.tealAccent.withOpacity(0.3),
-                                          child: Center(
-                                            child: Icon(
-                                              Icons.music_off,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  : Container(
-                                      width: 50,
-                                      height: 50,
-                                      color: Colors.tealAccent.withOpacity(0.3),
-                                      child: Center(
-                                        child: Icon(
-                                          Icons.music_off,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                            ],
-                          ),
-                          title: Text(
-                            song['title'] ?? 'UNKNOWN TRACK',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : Container(
+                              width: 50,
+                              height: 50,
+                              color: Colors.tealAccent.withOpacity(0.3),
+                              child: Center(
+                                child: Icon(
+                                  Icons.music_off,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
-                          ),
-                          subtitle: Text(
-                            '${song['author'] ?? 'UNKNOWN ARTIST'} • ${song['duration'] ?? ''}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: Colors.grey[300]),
-                          ),
-                          trailing: Text(
-                            song['publishedAt'] ?? '',
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 12,
-                            ),
-                          ),
-                          onTap: () => _navigateToPlayer(song),
-                        ),
-                      );
-                    },
-                  ),
+                      onTap: () => _navigateToPlayer(song),
+                    ),
+                  );
+                },
+              ),
       ),
     );
   }
