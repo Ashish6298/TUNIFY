@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:just_audio/just_audio.dart';
 import 'package:retry/retry.dart';
 import 'player_screen.dart';
-import 'collection_screen.dart'; // Import the CollectionScreen
+import 'collection_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen>
       vsync: this,
     )..repeat(reverse: true);
     
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+    _pulseAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
     
@@ -125,7 +125,11 @@ class _HomeScreenState extends State<HomeScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CollectionScreen(collectionName: name, keyword: keyword, initialSongs: collections.firstWhere((c) => c['name'] == name)['songs']),
+        builder: (context) => CollectionScreen(
+          collectionName: name,
+          keyword: keyword,
+          initialSongs: collections.firstWhere((c) => c['name'] == name)['songs'],
+        ),
       ),
     );
   }
@@ -150,13 +154,14 @@ class _HomeScreenState extends State<HomeScreen>
         title: Text(
           'TUNIFY',
           style: TextStyle(
-            fontSize: 24,
-            letterSpacing: 4,
+            fontSize: 26,
+            letterSpacing: 5,
             color: Colors.white,
+            fontWeight: FontWeight.bold,
             shadows: [
               Shadow(
-                color: Colors.tealAccent.withOpacity(0.5),
-                blurRadius: 10,
+                color: Colors.tealAccent.withOpacity(0.6),
+                blurRadius: 12,
               ),
             ],
           ),
@@ -170,8 +175,8 @@ class _HomeScreenState extends State<HomeScreen>
             end: Alignment.bottomCenter,
             colors: [
               Colors.grey[900]!,
-              Colors.blueGrey[800]!,
-              Colors.teal[700]!,
+              Colors.blueGrey[900]!,
+              Colors.teal[800]!,
             ],
           ),
         ),
@@ -179,32 +184,33 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             if (_isSearchActive)
               Padding(
-                padding: EdgeInsets.all(16.0),
+                padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
                 child: Row(
                   children: [
                     Expanded(
                       child: TextField(
                         controller: _searchController,
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.white, fontSize: 16),
                         decoration: InputDecoration(
-                          hintText: 'SEARCH MUSIC',
-                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          hintText: 'Search Music',
+                          hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.tealAccent),
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.tealAccent),
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.white, width: 2),
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: Colors.tealAccent, width: 1.5),
                           ),
                           filled: true,
-                          fillColor: Colors.grey[800]!.withOpacity(0.7),
+                          fillColor: Colors.grey[850]!.withOpacity(0.9),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           suffixIcon: IconButton(
-                            icon: Icon(Icons.clear, color: Colors.white),
+                            icon: Icon(Icons.clear, color: Colors.grey[400]),
                             onPressed: () {
                               _searchController.clear();
                               setState(() {
@@ -226,20 +232,22 @@ class _HomeScreenState extends State<HomeScreen>
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.tealAccent,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                        elevation: 4,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.search, color: Colors.grey[900]),
-                          SizedBox(width: 8),
+                          Icon(Icons.search, color: Colors.grey[900], size: 20),
+                          SizedBox(width: 6),
                           Text(
-                            'SCAN',
+                            'Scan',
                             style: TextStyle(
                               color: Colors.grey[900],
-                              letterSpacing: 2,
+                              letterSpacing: 1.5,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
@@ -253,22 +261,24 @@ class _HomeScreenState extends State<HomeScreen>
                   ? (_searchController.text.isEmpty && searchResults.isEmpty)
                       ? Center(
                           child: Text(
-                            'START TYPING TO SEARCH',
+                            'Start Typing to Search',
                             style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.white,
-                              letterSpacing: 2,
+                              fontSize: 22,
+                              color: Colors.grey[400],
+                              letterSpacing: 1.5,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         )
                       : (searchResults.isEmpty)
                           ? Center(
                               child: Text(
-                                'NO RESULTS FOUND',
+                                'No Results Found',
                                 style: TextStyle(
-                                  fontSize: 20,
-                                  color: Colors.white,
-                                  letterSpacing: 2,
+                                  fontSize: 22,
+                                  color: Colors.grey[400],
+                                  letterSpacing: 1.5,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             )
@@ -277,27 +287,34 @@ class _HomeScreenState extends State<HomeScreen>
                               itemBuilder: (context, index) {
                                 final song = searchResults[index];
                                 return Container(
-                                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  margin: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey[800]!.withOpacity(0.8),
+                                    color: Colors.grey[850]!.withOpacity(0.9),
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.tealAccent.withOpacity(0.3)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 6,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
                                   child: ListTile(
                                     title: Text(
-                                      song['title'] ?? 'UNKNOWN TRACK',
+                                      song['title'] ?? 'Unknown Track',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
                                       ),
                                     ),
                                     subtitle: Text(
-                                      song['author'] ?? 'UNKNOWN ARTIST',
+                                      song['author'] ?? 'Unknown Artist',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(color: Colors.grey[300]),
+                                      style: TextStyle(color: Colors.grey[400], fontSize: 14),
                                     ),
                                     leading: song['thumbnail'] != null
                                         ? ClipRRect(
@@ -311,11 +328,14 @@ class _HomeScreenState extends State<HomeScreen>
                                                   Container(
                                                 width: 50,
                                                 height: 50,
-                                                color: Colors.tealAccent.withOpacity(0.3),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.tealAccent.withOpacity(0.2),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
                                                 child: Center(
                                                   child: Icon(
                                                     Icons.music_off,
-                                                    color: Colors.white,
+                                                    color: Colors.grey[400],
                                                   ),
                                                 ),
                                               ),
@@ -324,11 +344,14 @@ class _HomeScreenState extends State<HomeScreen>
                                         : Container(
                                             width: 50,
                                             height: 50,
-                                            color: Colors.tealAccent.withOpacity(0.3),
+                                            decoration: BoxDecoration(
+                                              color: Colors.tealAccent.withOpacity(0.2),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
                                             child: Center(
                                               child: Icon(
                                                 Icons.music_off,
-                                                color: Colors.white,
+                                                color: Colors.grey[400],
                                               ),
                                             ),
                                           ),
@@ -345,23 +368,25 @@ class _HomeScreenState extends State<HomeScreen>
                               ScaleTransition(
                                 scale: _pulseAnimation,
                                 child: Text(
-                                  'LOADING COLLECTIONS',
+                                  'Loading Collections',
                                   style: TextStyle(
-                                    fontSize: 24,
+                                    fontSize: 26,
                                     color: Colors.white,
-                                    letterSpacing: 4,
+                                    letterSpacing: 2,
+                                    fontWeight: FontWeight.bold,
                                     shadows: [
                                       Shadow(
-                                        color: Colors.tealAccent.withOpacity(0.3),
-                                        blurRadius: 10,
+                                        color: Colors.tealAccent.withOpacity(0.4),
+                                        blurRadius: 12,
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                              SizedBox(height: 20),
+                              SizedBox(height: 24),
                               CircularProgressIndicator(
                                 color: Colors.tealAccent,
+                                strokeWidth: 3,
                               ),
                             ],
                           ),
@@ -379,16 +404,25 @@ class _HomeScreenState extends State<HomeScreen>
                                   onTap: () {
                                     if (songs.isNotEmpty) {
                                       if (songs.length > 1) {
-                                        // Navigate to CollectionScreen if more than 1 song
                                         _navigateToCollection(collection['name'], collection['keyword']);
                                       } else {
-                                        // Directly play the song if only 1 song
                                         _navigateToPlayer(songs[0]);
                                       }
                                     }
                                   },
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
+                                    margin: EdgeInsets.only(top: 12),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.tealAccent.withOpacity(0.1),
+                                          Colors.transparent,
+                                        ],
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                      ),
+                                    ),
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
@@ -399,16 +433,23 @@ class _HomeScreenState extends State<HomeScreen>
                                             color: Colors.white,
                                             letterSpacing: 2,
                                             fontWeight: FontWeight.bold,
+                                            shadows: [
+                                              Shadow(
+                                                color: Colors.tealAccent.withOpacity(0.3),
+                                                blurRadius: 6,
+                                              ),
+                                            ],
                                           ),
                                         ),
                                         Row(
                                           children: [
                                             if (collection['name'] == 'Top 100 Songs')
                                               Text(
-                                                '100 SONGS',
+                                                '100 Songs',
                                                 style: TextStyle(
                                                   fontSize: 14,
-                                                  color: Colors.grey[400],
+                                                  color: Colors.grey[500],
+                                                  fontWeight: FontWeight.w500,
                                                 ),
                                               ),
                                             SizedBox(width: 8),
@@ -417,7 +458,7 @@ class _HomeScreenState extends State<HomeScreen>
                                                   ? Icons.arrow_forward_ios
                                                   : Icons.play_arrow,
                                               color: Colors.tealAccent,
-                                              size: 20,
+                                              size: 22,
                                             ),
                                           ],
                                         ),
@@ -430,77 +471,96 @@ class _HomeScreenState extends State<HomeScreen>
                                   child: songs.isEmpty
                                       ? Center(
                                           child: Text(
-                                            'NO SONGS AVAILABLE',
+                                            'No Songs Available',
                                             style: TextStyle(
                                               fontSize: 16,
-                                              color: Colors.grey[400],
-                                              letterSpacing: 1,
+                                              color: Colors.grey[500],
+                                              letterSpacing: 1.2,
+                                              fontWeight: FontWeight.w500,
                                             ),
                                           ),
                                         )
                                       : ListView.builder(
                                           scrollDirection: Axis.horizontal,
-                                          itemCount: songs.length > 3 ? 3 : songs.length, // Still limited to 3 songs
+                                          itemCount: songs.length > 3 ? 3 : songs.length,
                                           itemBuilder: (context, songIndex) {
                                             final song = songs[songIndex];
                                             return Container(
                                               width: 150,
-                                              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                                               child: GestureDetector(
                                                 onTap: () => _navigateToPlayer(song),
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    song['thumbnail'] != null
-                                                        ? ClipRRect(
-                                                            borderRadius: BorderRadius.circular(8),
-                                                            child: Image.network(
-                                                              song['thumbnail'],
-                                                              width: 150,
-                                                              height: 120,
-                                                              fit: BoxFit.cover,
-                                                              errorBuilder: (context, error, stackTrace) =>
-                                                                  Container(
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(12),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.black.withOpacity(0.2),
+                                                            blurRadius: 6,
+                                                            offset: Offset(0, 2),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: song['thumbnail'] != null
+                                                          ? ClipRRect(
+                                                              borderRadius: BorderRadius.circular(12),
+                                                              child: Image.network(
+                                                                song['thumbnail'],
                                                                 width: 150,
                                                                 height: 120,
-                                                                color: Colors.tealAccent.withOpacity(0.3),
-                                                                child: Center(
-                                                                  child: Icon(
-                                                                    Icons.music_off,
-                                                                    color: Colors.white,
+                                                                fit: BoxFit.cover,
+                                                                errorBuilder: (context, error, stackTrace) =>
+                                                                    Container(
+                                                                  width: 150,
+                                                                  height: 120,
+                                                                  decoration: BoxDecoration(
+                                                                    color: Colors.tealAccent.withOpacity(0.2),
+                                                                    borderRadius: BorderRadius.circular(12),
+                                                                  ),
+                                                                  child: Center(
+                                                                    child: Icon(
+                                                                      Icons.music_off,
+                                                                      color: Colors.grey[400],
+                                                                    ),
                                                                   ),
                                                                 ),
                                                               ),
-                                                            ),
-                                                          )
-                                                        : Container(
-                                                            width: 150,
-                                                            height: 120,
-                                                            color: Colors.tealAccent.withOpacity(0.3),
-                                                            child: Center(
-                                                              child: Icon(
-                                                                Icons.music_off,
-                                                                color: Colors.white,
+                                                            )
+                                                          : Container(
+                                                              width: 150,
+                                                              height: 120,
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.tealAccent.withOpacity(0.2),
+                                                                borderRadius: BorderRadius.circular(12),
+                                                              ),
+                                                              child: Center(
+                                                                child: Icon(
+                                                                  Icons.music_off,
+                                                                  color: Colors.grey[400],
+                                                                ),
                                                               ),
                                                             ),
-                                                          ),
+                                                    ),
                                                     SizedBox(height: 8),
                                                     Text(
-                                                      song['title'] ?? 'UNKNOWN TRACK',
+                                                      song['title'] ?? 'Unknown Track',
                                                       maxLines: 1,
                                                       overflow: TextOverflow.ellipsis,
                                                       style: TextStyle(
                                                         color: Colors.white,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight: FontWeight.w600,
                                                         fontSize: 14,
                                                       ),
                                                     ),
                                                     Text(
-                                                      song['author'] ?? 'UNKNOWN ARTIST',
+                                                      song['author'] ?? 'Unknown Artist',
                                                       maxLines: 1,
                                                       overflow: TextOverflow.ellipsis,
                                                       style: TextStyle(
-                                                        color: Colors.grey[300],
+                                                        color: Colors.grey[400],
                                                         fontSize: 12,
                                                       ),
                                                     ),
@@ -520,15 +580,16 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
       bottomNavigationBar: Container(
-        height: 60,
+        height: 70,
         decoration: BoxDecoration(
           color: Colors.grey[900],
-          border: Border(
-            top: BorderSide(
-              color: Colors.tealAccent.withOpacity(0.3),
-              width: 1,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 8,
+              offset: Offset(0, -2),
             ),
-          ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -536,8 +597,8 @@ class _HomeScreenState extends State<HomeScreen>
             IconButton(
               icon: Icon(
                 Icons.home,
-                color: _isSearchActive ? Colors.white : Colors.tealAccent,
-                size: 30,
+                color: _isSearchActive ? Colors.grey[400] : Colors.tealAccent,
+                size: 32,
               ),
               onPressed: () {
                 if (_isSearchActive) {
@@ -550,8 +611,8 @@ class _HomeScreenState extends State<HomeScreen>
             IconButton(
               icon: Icon(
                 Icons.search,
-                color: _isSearchActive ? Colors.tealAccent : Colors.white,
-                size: 30,
+                color: _isSearchActive ? Colors.tealAccent : Colors.grey[400],
+                size: 32,
               ),
               onPressed: _toggleSearch,
             ),
