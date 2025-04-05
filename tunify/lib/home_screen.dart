@@ -440,7 +440,7 @@ class _HomeScreenState extends State<HomeScreen>
                                         )
                                       : ListView.builder(
                                           scrollDirection: Axis.horizontal,
-                                          itemCount: songs.length > 3 ? 3 : songs.length, // Limit to 3 songs
+                                          itemCount: songs.length > 3 ? 3 : songs.length, // Still limited to 3 songs
                                           itemBuilder: (context, songIndex) {
                                             final song = songs[songIndex];
                                             return Container(

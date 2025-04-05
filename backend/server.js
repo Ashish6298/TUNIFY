@@ -1,7 +1,3 @@
-//server.js
-
-
-
 const express = require("express");
 const cors = require("cors");
 const ytdl = require("@distube/ytdl-core");
@@ -168,13 +164,13 @@ app.get("/stream/:videoId", async (req, res) => {
   }
 });
 
-// Collections endpoint (Updated to fetch minimum 10)
+// Collections endpoint
 app.get("/collections", async (req, res) => {
   try {
     console.log("Fetching song collections");
     const currentYear = new Date().getFullYear();
 
-    // Define collections with their search keywords, including "Top 100 Songs"
+    // Define collections with their search keywords, including "Top 100 Songs" and new additions
     const collections = [
       { name: "Top 100 Songs", keyword: `top songs ${currentYear}` },
       { name: "Romantics", keyword: `romantic songs ${currentYear}` },
@@ -191,6 +187,11 @@ app.get("/collections", async (req, res) => {
       { name: "Workout Jams", keyword: `workout songs ${currentYear}` },
       { name: "Love Ballads", keyword: `love ballads ${currentYear}` },
       { name: "Hip Hop Classics", keyword: `hip hop classics` },
+      { name: "Kannada", keyword: `kannada songs ${currentYear}` },
+      { name: "Punjabi", keyword: `punjabi songs ${currentYear}` }, // Note: Already exists as "Punjabi Beats", so adjusted keyword
+      { name: "Haryanvi", keyword: `haryanvi songs ${currentYear}` },
+      { name: "Tamil", keyword: `tamil songs ${currentYear}` },
+      { name: "Malayalam", keyword: `malayalam songs ${currentYear}` },
     ];
 
     // Fetch songs for each collection
@@ -199,7 +200,7 @@ app.get("/collections", async (req, res) => {
         const result = await youtubeSearch.GetListByKeyword(
           collection.keyword,
           false,
-          10, // Changed from 5 to 10
+          25,
           [{ type: "video" }]
         );
 

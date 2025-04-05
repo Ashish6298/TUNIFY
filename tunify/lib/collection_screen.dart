@@ -6,7 +6,7 @@ import 'player_screen.dart';
 class CollectionScreen extends StatefulWidget {
   final String collectionName;
   final String keyword;
-  final List<dynamic> initialSongs; // Pass initial songs from HomeScreen
+  final List<dynamic> initialSongs; // Pass initial songs from HomeScreen (now up to 25)
 
   CollectionScreen({required this.collectionName, required this.keyword, required this.initialSongs});
 
@@ -21,7 +21,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
   @override
   void initState() {
     super.initState();
-    // Use initialSongs if available
+    // Use initialSongs if available (now up to 25 songs)
     setState(() {
       songs = widget.initialSongs;
       _isLoading = false;
@@ -98,7 +98,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                 ),
               )
             : ListView.builder(
-                itemCount: songs.length,
+                itemCount: songs.length, // Now handles up to 25 songs
                 itemBuilder: (context, index) {
                   final song = songs[index];
                   return Container(
