@@ -299,9 +299,23 @@ app.get("/stream/:videoId", async (req, res) => {
       console.warn("YOUTUBE_COOKIE_STRING not set, proceeding without cookies");
     }
 
+    // const info = await ytdl.getInfo(url, {
+    //   requestOptions: { headers },
+    // });
+
     const info = await ytdl.getInfo(url, {
-      requestOptions: { headers },
+      requestOptions: {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+          "Accept-Language": "en-US,en;q=0.9",
+          "Cookie": process.env.YOUTUBE_COOKIE_STRING, // ✅ Correct way
+        }
+      }
     });
+    
+
+
+
 
     const audioFormat = ytdl.chooseFormat(info.formats, {
       filter: "audioonly",
