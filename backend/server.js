@@ -175,6 +175,95 @@ app.get("/recommendations", async (req, res) => {
 
 
 
+// app.get("/stream/:videoId", async (req, res) => {
+//   const videoId = req.params.videoId;
+
+//   if (!videoId) {
+//     return res.status(400).json({
+//       success: false,
+//       error: "Video ID is required",
+//     });
+//   }
+
+//   try {
+//     console.log(`Fetching audio stream for video ID: ${videoId}`);
+//     const url = `https://www.youtube.com/watch?v=${videoId}`;
+
+//     if (!ytdl.validateID(videoId)) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "Invalid video ID",
+//       });
+//     }
+
+//     // Load cookies from .env, fallback to empty array if not set
+//     let cookies = [];
+//     if (process.env.YOUTUBE_COOKIES) {
+//       try {
+//         cookies = JSON.parse(process.env.YOUTUBE_COOKIES);
+//       } catch (parseError) {
+//         console.error("Failed to parse YOUTUBE_COOKIES:", parseError.message);
+//         return res.status(500).json({
+//           success: false,
+//           error: "Invalid cookie configuration",
+//           details: parseError.message,
+//         });
+//       }
+//     } else {
+//       console.warn("YOUTUBE_COOKIES not set, proceeding without cookies");
+//     }
+
+//     const info = await ytdl.getInfo(url, {
+//       requestOptions: {
+//         headers: {
+//           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+//           "Accept-Language": "en-US,en;q=0.9",
+//           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+//         },
+//         cookies: cookies, // Use cookies if available, otherwise empty array
+//       },
+//     });
+
+//     const audioFormat = ytdl.chooseFormat(info.formats, {
+//       filter: "audioonly",
+//       quality: "highestaudio",
+//     });
+
+//     if (!audioFormat) {
+//       return res.status(404).json({
+//         success: false,
+//         error: "No audio stream available for this video",
+//       });
+//     }
+
+//     console.log(`Audio stream URL generated for ${videoId}`);
+//     res.json({
+//       success: true,
+//       url: audioFormat.url,
+//     });
+//   } catch (error) {
+//     console.error("Stream error:", error.message, error.stack);
+//     res.status(500).json({
+//       success: false,
+//       error: "Failed to fetch audio stream",
+//       details: error.message,
+//     });
+//   }
+// });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 app.get("/stream/:videoId", async (req, res) => {
   const videoId = req.params.videoId;
 
@@ -196,32 +285,21 @@ app.get("/stream/:videoId", async (req, res) => {
       });
     }
 
-    // Load cookies from .env, fallback to empty array if not set
-    let cookies = [];
-    if (process.env.YOUTUBE_COOKIES) {
-      try {
-        cookies = JSON.parse(process.env.YOUTUBE_COOKIES);
-      } catch (parseError) {
-        console.error("Failed to parse YOUTUBE_COOKIES:", parseError.message);
-        return res.status(500).json({
-          success: false,
-          error: "Invalid cookie configuration",
-          details: parseError.message,
-        });
-      }
+    // Load cookies from .env, fallback to empty string if not set
+    const headers = {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept-Language": "en-US,en;q=0.9",
+    };
+
+    if (process.env.YOUTUBE_COOKIE_STRING) {
+      headers["Cookie"] = process.env.YOUTUBE_COOKIE_STRING;
     } else {
-      console.warn("YOUTUBE_COOKIES not set, proceeding without cookies");
+      console.warn("YOUTUBE_COOKIE_STRING not set, proceeding without cookies");
     }
 
     const info = await ytdl.getInfo(url, {
-      requestOptions: {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-          "Accept-Language": "en-US,en;q=0.9",
-          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        },
-        cookies: cookies, // Use cookies if available, otherwise empty array
-      },
+      requestOptions: { headers },
     });
 
     const audioFormat = ytdl.chooseFormat(info.formats, {
@@ -250,6 +328,13 @@ app.get("/stream/:videoId", async (req, res) => {
     });
   }
 });
+
+
+
+
+
+
+
 
 
 
