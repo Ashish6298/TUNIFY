@@ -27,7 +27,7 @@ flutter pub get
 
 Clone the backend repository and install Node.js dependencies. Create a .env file with optional YouTube cookies to unlock restricted tracks. Start the Node.js server, and use your machine’s IP address to connect from your Flutter app on an Android emulator or device.  
 ```
-git clone https://github.com/yourusername/TUNIFY
+git clone https://github.com/ashish6298/TUNIFY
 ```
     cd backend
 ```
